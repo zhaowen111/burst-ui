@@ -47,11 +47,11 @@ export function getSizes() {
   return [pageWidth, pageHeight];
 }
 
-let sizes = getSizes();
-const ratio = window.devicePixelRatio;
-window.addEventListener("resize", () => {
-  sizes = getSizes();
-});
+// let sizes = getSizes();
+// const ratio = window.devicePixelRatio;
+// window.addEventListener("resize", () => {
+//   sizes = getSizes();
+// });
 export function supportFullscreen(element: HTMLElement | null) {
   if (!element) return;
   window.addEventListener("dblclick", () => {
