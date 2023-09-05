@@ -15,6 +15,7 @@ export default function CycleScrollItem({
 }: CycleScrollItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [scrollAll, setScrollAll] = useState(0);
+  console.log(scrollAll);
 
   /**
    * 比gsap.to()性能更好
