@@ -2,7 +2,7 @@ import { Children, ReactNode, useEffect, useRef, WheelEvent } from "react";
 import { useImmer } from "use-immer";
 import GUI from "lil-gui";
 import CycleScrollItem from "./CircleScrollChild";
-
+import * as Hammer from "hammerjs";
 const gui = new GUI();
 !window.location.hash.includes("debug") && gui.hide();
 const initParams = {
@@ -39,12 +39,39 @@ export default function CircleScroll({ children = [] }: { children: Iterable<Rea
     });
   }, [children]);
 
+  /**
+   * 处理用户滚动
+   */
+
+  //触屏
+  useEffect(() => {
+    if (container.current) {
+      const hammerContainer = new Hammer(container.current, {});
+      hammerContainer.get("pan").set({ direction: Hammer.DIRECTION_VERTICAL });
+
+      let lastY = 0;
+      hammerContainer.on("panmove", e => {
+        const change = e.deltaY - lastY;
+        setContainerInfo(v => {
+          v.deltaY = -params.SCROLL_SPEED * change * 2;
+          v.scrollTop = v.scrollTop + v.deltaY;
+        });
+        lastY = e.deltaY;
+      });
+      hammerContainer.on("panend", () => {
+        lastY = 0;
+      });
+    }
+  }, [container.current]);
+
+  //鼠标
   function handleWheel(e: WheelEvent<HTMLDivElement>) {
     setContainerInfo(v => {
       v.scrollTop = v.scrollTop + params.SCROLL_SPEED * e.deltaY;
       v.deltaY = params.SCROLL_SPEED * e.deltaY;
     });
   }
+
   /**
    * Debug
    */
