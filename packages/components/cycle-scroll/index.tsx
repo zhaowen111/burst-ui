@@ -2,7 +2,7 @@ import { Children, ReactNode, useEffect, useRef, WheelEvent } from "react";
 import { useImmer } from "use-immer";
 import GUI from "lil-gui";
 import CycleScrollItem from "./CircleScrollChild";
-import * as Hammer from "hammerjs";
+import "hammerjs"; //hammerjs不支持esm导入，直接导入会挂载到window对象上
 const gui = new GUI();
 !window.location.hash.includes("debug") && gui.hide();
 const initParams = {
