@@ -10,7 +10,6 @@ function Example() {
         <div className="h-40 w-auto bg-black text-cyan-300 p-6 m-6 border-4">4</div>
         <div className="h-40 w-auto bg-black text-cyan-300 p-6 m-6 border-4">5</div>
         <div className="h-40 w-auto bg-black text-cyan-300 p-6 m-6 border-4">6</div>
-        <div className="h-40 w-auto bg-black text-cyan-300 p-6 m-6 border-4">7</div>
       </CircleScroll>
     </>
   );
