@@ -1,40 +1,29 @@
 import { gsap } from "gsap";
-import { ReactNode, useRef, useState, useCallback, useEffect } from "react";
-import { ParamsType } from ".";
-type CycleScrollItemProps = {
-  children: ReactNode;
-  scrollTop: number;
-  deltaY: number;
-  contentHeight: number;
-  params: ParamsType;
-};
+import { useRef, useState, useCallback, useEffect } from "react";
+
 export default function CycleScrollItem({
   children,
   scrollTop,
   deltaY,
   contentHeight,
   params,
-}: CycleScrollItemProps) {
+}: CircleScroll.ChildProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [, setScrollAll] = useState(0);
 
-  /**
-   * 比gsap.to()性能更好
-   */
   const quickTo = useCallback(
     ref.current
-      ? gsap.quickTo(ref.current, "y", { duration: params.TWEEN_DURATION, ease: "power3.out" })
+      ? gsap.quickTo(ref.current, "y", { duration: params.TWEEN_DURATION, ease: "power3.out" }) //比gsap.to()性能更好
       : () => {},
     [ref.current, params.TWEEN_DURATION]
   );
-
-  const tween = (distance: number, hasJump: boolean) => {
-    if (hasJump) {
-      quickTo(distance)?.seek(params.TWEEN_DURATION); //如果这次tween跨越整个页面，为了避免被用户感知到，直接跳转到动画完成状态
-    } else {
-      quickTo(distance);
-    }
-  };
+  const tween = useCallback(
+    (distance: number, hasJump: boolean) => {
+      //如果这次tween跨越整个页面，为了避免被用户感知到，直接跳转到动画完成状态
+      hasJump ? quickTo(distance)?.seek(params.TWEEN_DURATION) : quickTo(distance);
+    },
+    [params.TWEEN_DURATION, quickTo]
+  );
   useEffect(() => {
     setScrollAll(scrolledDistance => {
       let newValue = scrolledDistance - deltaY;
@@ -45,6 +34,10 @@ export default function CycleScrollItem({
       tween(y, hasJump);
       return y;
     });
+    return () => {
+      console.log(112233);
+    };
   }, [scrollTop, contentHeight]);
+
   return <div ref={ref}>{children}</div>;
 }

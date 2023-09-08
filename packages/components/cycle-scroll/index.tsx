@@ -1,8 +1,11 @@
-import { Children, ReactNode, useEffect, useRef, WheelEvent } from "react";
+import { Children, ReactNode, useCallback, useEffect, useRef, WheelEvent } from "react";
 import { useImmer } from "use-immer";
 import GUI from "lil-gui";
+import device from "current-device";
 import CycleScrollItem from "./CircleScrollChild";
-import "hammerjs"; //hammerjs不支持esm导入，直接导入会挂载到window对象上
+//导入到全局
+import "hammerjs";
+
 const gui = new GUI();
 !window.location.hash.includes("debug") && gui.hide();
 const initParams = {
@@ -10,20 +13,10 @@ const initParams = {
   SCROLL_SPEED: 0.5,
   OFFSET_TO_TOP: 100, //向上偏移200px,避免元素还没从屏幕上消失时就移动到下方
 };
-type ContainerInfoType = {
-  scrollTop: number; //滚动距离
-  clientHeight: number;
-  scrollHeight: number;
-  deltaY: number;
-};
-export type ParamsType = {
-  TWEEN_DURATION: number;
-  SCROLL_SPEED: number;
-  OFFSET_TO_TOP: number;
-};
+
 export default function CircleScroll({ children = [] }: { children: Iterable<ReactNode> }) {
   const container = useRef<HTMLDivElement>(null);
-  const [containerInfo, setContainerInfo] = useImmer<ContainerInfoType>({
+  const [containerInfo, setContainerInfo] = useImmer<CircleScroll.ScrollInformation>({
     scrollTop: 0,
     clientHeight: 0,
     scrollHeight: 0,
@@ -45,7 +38,7 @@ export default function CircleScroll({ children = [] }: { children: Iterable<Rea
 
   //触屏
   useEffect(() => {
-    if (container.current) {
+    if (container.current && device.mobile()) {
       const hammerContainer = new Hammer(container.current, {});
       hammerContainer.get("pan").set({ direction: Hammer.DIRECTION_VERTICAL });
 
@@ -53,7 +46,7 @@ export default function CircleScroll({ children = [] }: { children: Iterable<Rea
       hammerContainer.on("panmove", e => {
         const change = e.deltaY - lastY;
         setContainerInfo(v => {
-          v.deltaY = -params.SCROLL_SPEED * change * 2;
+          v.deltaY = -params.SCROLL_SPEED * change * 3;
           v.scrollTop = v.scrollTop + v.deltaY;
         });
         lastY = e.deltaY;
@@ -65,17 +58,18 @@ export default function CircleScroll({ children = [] }: { children: Iterable<Rea
   }, [container.current]);
 
   //鼠标
-  function handleWheel(e: WheelEvent<HTMLDivElement>) {
+  const handleWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
     setContainerInfo(v => {
+      console.log(params.SCROLL_SPEED);
       v.scrollTop = v.scrollTop + params.SCROLL_SPEED * e.deltaY;
       v.deltaY = params.SCROLL_SPEED * e.deltaY;
     });
-  }
+  }, []);
 
   /**
    * Debug
    */
-  const [params, setParams] = useImmer<ParamsType>(initParams);
+  const [params, setParams] = useImmer<CircleScroll.Params>(initParams);
   useEffect(() => {
     const controller = gui
       .add({ ...initParams }, "OFFSET_TO_TOP", -1000, 1000, 50)
@@ -84,8 +78,10 @@ export default function CircleScroll({ children = [] }: { children: Iterable<Rea
           param.OFFSET_TO_TOP = v;
         });
       });
+    const c2 = gui.add({ ...initParams }, "SCROLL_SPEED", 0.1, 2, 0.1);
     return () => {
       controller.destroy();
+      c2.destroy();
     };
   }, []);
   return (
